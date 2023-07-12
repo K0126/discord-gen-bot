@@ -68,7 +68,7 @@ async def 재고확인(interaction: Interaction):
         count = checkCount()
         await interaction.send(f'**```css\n 남은 재고는 {count}개 입니다.```**')
     else:
-        await interaction.send('**```css\n해당 채널에서는 명령어를 사용할 수 없어요!```**')
+        await interaction.send('**```css\n[ ⛔ ] 해당 채널에서는 명령어를 사용할 수 없어요!```**')
 
 
 
