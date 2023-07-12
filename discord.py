@@ -73,3 +73,7 @@ async def 재고확인(interaction: Interaction):
 
 
 bot.run('token') #token에 봇 토큰 추가
+
+
+
+# Made by TellMe#0001 (caniloveyou)
