@@ -55,4 +55,4 @@ async def 재고확인(interaction: Interaction):
 
 
 
-bot.run('token') #봇 토큰 추가
+bot.run('token') #token에 봇 토큰 추가
