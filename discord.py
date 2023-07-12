@@ -1,137 +1,58 @@
-import asyncio
-import datetime
-from lib2to3.pytree import convert
-import time
-from timeit import repeat
-import disnake,json,os,random
-from disnake.ext import commands
+import nextcord, asyncio
+from nextcord import Interaction, SlashOption, ChannelType
+from nextcord.ext import commands
+from nextcord import application_command
 
-print(credits)
-print("봇을 시작하는 중입니다...")
+intents = nextcord.Intents.default()
+intents.message_content = True
+bot = commands.Bot(command_prefix="/", intents=intents)
 
-time.sleep(1) #간지용 쿨타임
+admins = [1234, 5678] # 관리자 아이디 추가
 
-with open("config.json") as file:
-    config = json.load(file)
-    token = config["token"]
-    cooldown = config["cooldown"]
-    cmd_channel = config["cmd_channel"]
 
-print("-> 로딩중")
+def getAcc():
+    with open('acc.txt', 'r') as f:
+        accounts = f.readlines()
+        f.close()
+    if len(accounts) == 0:
+        return False
+    account = accounts[0].replace("\n", "")
+    accounts = [acc.strip() for acc in accounts if acc.strip() != account]
+    with open('acc.txt', 'w') as file:
+        file.write('\n'.join(accounts))
+    return account
 
-prefix = "/"
-clientIntents = disnake.Intents.default()
-clientIntents.message_content = True
-clientIntents.members = True
-venady = commands.Bot(command_prefix=prefix , intents=clientIntents, help_command=None)
 
-time.sleep(1) #간지용 쿨타임
+def checkCount():
+    with open('acc.txt', 'r') as f:
+        accounts = f.readlines()
+        f.close()
+    return len(accounts)
 
-print("-> 로딩중")
-time.sleep(1) 
-print("-> 봇이 온라인입니다. \n") 
 
-#----------------------------------------봇 이벤트----------------------------------------
+@bot.slash_command(name="젠", description="DM으로 재고 전송")
+async def 젠(interaction: Interaction):
+    if interaction.channel.id != 1128409819448082445: # 커멘드 사용 가능한 채널 아이디 
+        return await interaction.send('**```css\n[ ⛔ ] 해당 채널에서는 명령어를 사용할 수 없어요!```**')
+    acc = getAcc()
+    if acc == False:
+        return await interaction.send('**```css\n[ ⛔ ] 재고가 없습니다!```**')
+    try:
+        em = nextcord.Embed(title=" ", description=f" \n `{acc}`\n  ", color=0x5d6bde )
+        await interaction.user.send(embed=em)
+        await interaction.send('**```css\n[ ✅ ] DM을 확인해주세요!```**')
+    except:
+        return await interaction.send('**```css\n[ ⛔ ] DM 전송에 실패하였습니다.```**')
 
-@venady.event
-async def on_ready():
-    await venady.change_presence(
-        activity=disnake.Activity(
-            type=disnake.ActivityType.playing,
-            name=f'with TellMe'),
-            status=disnake.Status.online)
 
-#----------------------------------------젠 명령어----------------------------------------
-
-@venady.slash_command(name="젠")
-@commands.cooldown(1, cooldown, commands.BucketType.member)
-async def gen(inter):
-    user = inter.author
-    server_name = inter.guild.name
-    if inter.channel.id != cmd_channel:
-        await inter.send(f"<#{cmd_channel}>에서 사용하세요.")
-        print(f"{inter.author.name} used 젠 -> Error [Wrong Channel]".replace(".txt",""))
-        return
-    stock_files = [file for file in os.listdir("Accounts") if file.endswith(".txt")]
-    if len(stock_files) == 0:
-        await inter.send(f"재고가 없습니다. `{prefix}재고`")
-        print(f"{inter.author.name} used 젠 -> Error [No Exist Account Type]".replace(".txt",""))
-        return
-    stock_file = random.choice(stock_files)
-    with open(f"Accounts//{stock_file}") as file:
-        lines = file.read().splitlines()
-        if len(lines) == 0:
-            await inter.send("재고가 없습니다.")
-            print(f"{inter.author.name} used 젠 -> Error [No Account Type Stock]".replace(".txt",""))
-            return
-    account = random.choice(lines)
-    em = disnake.Embed(title=" ", description=f" \n `{str(account)}`\n  ", color=0xFFFFFF, timestamp=datetime.datetime.utcnow()) #시간 바꾸셈 ㅇㅇ
-    em.set_footer(text=f"{server_name}")
-    await user.send(embed=em)
-    print(f"{inter.author.name} used 젠 -> Successful | {server_name}".replace(".txt",""))
-    await inter.send("젠 성공! 디엠을 확인해 주세요.")
-
-@gen.error
-async def gen_error(inter: disnake.ApplicationCommandInteraction, error: Exception) -> None:
-    if isinstance(error, commands.CommandOnCooldown):
-        retry_after = disnake.utils.format_dt(
-            disnake.utils.utcnow() + datetime.timedelta(seconds=error.retry_after), "R"
-        )
-        return await inter.response.send_message(
-            f"쿨타임입니다. {retry_after} 후에 다시 시도하세요. ",
-            ephemeral=True
-        )
-    raise error
-
-@venady.slash_command() # 재고 커멘드
-async def 재고(inter:disnake.ApplicationCommandInteraction):
-    """재고 확인"""
-    id = inter.guild.id
-    server_name = inter.guild.name
-    stockmenu = disnake.Embed(title="재고", description="**종류  -  갯수** \n", color=0xFFFFFF, timestamp=datetime.datetime.utcnow())
-    stockmenu.set_footer(text=f"{server_name}")
-    stockmenu
-    for filename in os.listdir(f"Accounts/"):
-        with open(f"Accounts//{filename}") as f: 
-            ammount = len(f.read().splitlines())
-            name = (filename[0].upper() + filename[1:].lower()).replace(".txt","") 
-            stockmenu.description += f"*{name}* - {ammount}\n"
-    await inter.send(embed=stockmenu)
-
-#----------------------------------------명령어----------------------------------------
-
-@venady.slash_command()
-@commands.has_permissions(administrator=True)
-async def 재고_추가(inter:disnake.ApplicationCommandInteraction, stock: disnake.Attachment):
-    """재고 추가하기"""
-    if not "text/plain" in stock.content_type:
-        await inter.send("텍스트 파일을 넣어주세요!", ephemeral=True)
-        return
-    stock_bytes = await stock.read()
-    stock_lines = stock_bytes.decode(stock.content_type.partition("charset=")[2]).splitlines()
-    if len(stock_lines) > 5000:
-        await inter.send("줄이 너무 많습니다!", ephemeral=True)
-        return
-    await stock.save(f"Accounts/{stock.filename}")
-    await inter.send(f"{stock.filename.partition('.')[0]}이(가) 재고에 추가되었습니다.")
-    return
-
-@venady.slash_command()
-@commands.has_permissions(administrator=True)
-async def 재고_삭제(inter: disnake.ApplicationCommandInteraction, stock):
-    """재고 삭제하기"""
-    stock = stock.lower() + ".txt" 
-    path = f"Accounts"
-    files = os.listdir(path)
-    if not stock in files:
-        await inter.send("재고가 존재하지 않습니다!", ephemeral=True)
-        return
-    os.remove(os.path.join(path, stock))
-    name = stock.lower().replace(".txt","")
-    await inter.send(f"{name}이(가) 삭제되었습니다.")
-
-venady.run(token)
+@bot.slash_command(name="재고확인", description="남은 재고 확인")
+async def 재고확인(interaction: Interaction):
+    if interaction.user.id in admins or interaction.channel.id == 1128409819448082445: # 커맨드 사용 가능한 채널 아이디 
+        count = checkCount()
+        await interaction.send(f'**```css\n 남은 재고는 {count}개 입니다.```**')
+    else:
+        await interaction.send('**```css\n해당 채널에서는 명령어를 사용할 수 없어요!```**')
 
 
 
-# Made by TellMe#0001 (caniloveyou)
+bot.run('token') #봇 토큰 추가
