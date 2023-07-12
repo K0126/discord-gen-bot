@@ -2,6 +2,23 @@ import nextcord, asyncio
 from nextcord import Interaction, SlashOption, ChannelType
 from nextcord.ext import commands
 from nextcord import application_command
+import time
+from timeit import repeat
+
+
+print(credits)
+print("봇을 시작하는 중입니다...")
+
+print("-> 로딩중")
+
+time.sleep(1) #간지용 쿨타임
+
+time.sleep(1) #간지용 쿨타임
+
+print("-> 로딩중")
+time.sleep(1) 
+print("-> 봇이 온라인입니다. \n")
+
 
 intents = nextcord.Intents.default()
 intents.message_content = True
