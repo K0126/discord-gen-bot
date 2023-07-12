@@ -1,10 +1,12 @@
 
 ## 사용 전
 
-파이썬에 [Disnake](https://github.com/DisnakeDev/disnake/) 설치하기.
+기존 [Discord]((https://github.com/Rapptz/discord)) 라이브러리 삭제 후 [Nextcord]([https://github.com/DisnakeDev/disnake/](https://github.com/nextcord/nextcord)) 설치하기.
 
 ```bash
-pip install git+https://github.com/DisnakeDev/disnake
+pip3 uninstall discord
+pip3 uninstall discord.py
+pip install git+https://github.com/DisnakeDev/disnake](https://github.com/nextcord/nextcord
 ```
 
 ## 명령어 사용법
